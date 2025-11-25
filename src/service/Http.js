@@ -2,8 +2,8 @@
 // dhacia la base de datos y lo va a configurar con AXIOS 
 //con este archivo tendremos varios servicios como el Authser
 //quien se va a encargar de hacer peticiones al Backend
-import axios from "axios"
-
+import axios from "axios";
+import { Buffer} from "buffer";
 export const urlBase = "http://127.0.0.1:8000/api";
 
 /**
@@ -13,7 +13,13 @@ export const urlBase = "http://127.0.0.1:8000/api";
 */
 
 export function http(){
-    let token = localStorage.getItem("token");
+    //traemos el token q esta codificado y lo decodificamos
+    //primero nos aseguramos que el token exista
+    let token = "";
+    if(localStorage.getItem("token")){
+        token = Buffer.from(localStorage.getItem("token"), "base64").toString("ascii");
+    }
+    
     //con axios siempre se debe de enviar cabeceras
     //esta configuración se la hace una sola vez
     //esta es la solicitud del encabezado

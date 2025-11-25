@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import App from '../App.vue'
 import Login from '../views/auth/Login2.vue'
 import Perfil from '../views/admin/Perfil.vue'
+import { Buffer} from "buffer";
 
 const routes = [
   {
@@ -29,9 +30,9 @@ const routes = [
     name: 'Admin',
     component: App,
     meta: {requireAuth: true}, //esto es una proteccion de ruta
-    chidren: [
+    children: [
       {
-        path: "perfil",
+        path: 'perfil',
         name: 'Perfil',
         component: Perfil,
         meta: {requireAuth: true}, //esto es una proteccion de ruta
@@ -53,15 +54,14 @@ router.beforeEach((to, from, next)=>{
   console.log(to)
   if(to.meta.requireAuth){
     //si necesita entonces debemos de verificar si estamos logueados
-    let token = localStorage.getItem("token");
+    //traemos los datos del local pero estan codificados asi q debemos decodi
+    let token = Buffer.from(localStorage.getItem("token"), "base64").toString("ascii");
     if(token){
       next()
-    }else{
-      next("/login");
     }
+    next("/login");
   }
-  next();
-  
+  next(); 
 })
 
 export default router
