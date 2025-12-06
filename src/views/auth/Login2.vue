@@ -83,7 +83,8 @@ export default{
                 console.log(res) //captura el valor
                 //almacenamos con Vuex pero antes importamos el state y actualizamos
                 store.dispatch('loginVuex', res.data)
-                //ciframos los datos antes de cuardarlo importando una clase
+                //ciframos los datos antes de cuardarlo importando una clase Buffer
+                //from codifica o cifra el contenido y lo guardamos en una const
                 const base64Token = Buffer.from(res.data.acces_token).toString('base64');
                 //guardamos en el local
                 localStorage.setItem("token", base64Token);

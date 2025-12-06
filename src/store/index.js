@@ -2,7 +2,7 @@ import { createStore } from 'vuex'
 
 export default createStore({
   state: {
-    //aqui declaramos datos
+    //aqui declaramos datos. Estados globales   Vue -> Data  == VueX = State 
     //tambien podríamos modificar los estados sin pasar por mutation o actions
     //pero por buenas prácticas debemos de seguir las normas
     contador: 0,
@@ -15,7 +15,7 @@ export default createStore({
       state.auth = datUser
     }
   },
-  actions: {
+  actions: {   //Vue -> methods  == VueX = Actions
     //ejecutamos una mutacion de accion a mutation y luego a state
     //desde aqui tambien podemos conectarnos al backend
     loginVuex(context, datos_usuario){
@@ -23,7 +23,7 @@ export default createStore({
     }
   },
   getters: {
-    //obtener informacion o retornar los datos o estados
+    //obtener informacion o retornar los datos o estados de manera mas rapida
   },
   modules: {
     //

@@ -57,10 +57,10 @@ router.beforeEach((to, from, next)=>{
     //traemos los datos del local pero estan codificados asi q debemos decodi
     let token = Buffer.from(localStorage.getItem("token"), "base64").toString("ascii");
     if(token){
-      next()
+      next(); // esta instrucción es = a dejar pasar a donde se quiere entrar TRUE
     }
     next("/login");
-  }
+  } //Si no requiere autenticación entonces puede pasar.. Asi validamos el lado del frontEnd
   next(); 
 })
 

@@ -13,7 +13,8 @@ export const urlBase = "http://127.0.0.1:8000/api";
 */
 
 export function http(){
-    //traemos el token q esta codificado y lo decodificamos
+    //traemos el token q esta codificado  en login2.vue y lo decodificamos
+    //indicando que está en base 64 y cambiamos de string a ascii
     //primero nos aseguramos que el token exista
     let token = "";
     if(localStorage.getItem("token")){
