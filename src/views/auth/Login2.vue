@@ -25,7 +25,7 @@
                 
                     <div class="w-full md:w-10 mx-auto">
                         <label for="email1" class="block text-900 text-xl font-medium mb-2">Correo electrónico</label>
-                        <InputText id="email1" v-model="credenciales.email" type="text" class="w-full mb-3" placeholder="Correo electrónico" style="padding:1rem;" />
+                        <InputText id="email1" v-model="credenciales.email" type="text" class="w-full mb-3" placeholder="Correo electrónico" style="padding:1rem" />
                 
                         <label for="password1" class="block text-900 font-medium text-xl mb-2">Contraseña</label>
                         <Password id="password1" v-model="credenciales.password" placeholder="Contraseña" :toggleMask="true" class="w-full mb-3" inputClass="w-full" inputStyle="padding:1rem"></Password>

@@ -1,3 +1,5 @@
+//Se encarga de realizar peticiones al servidor para hacer un login o
+//para pedri el perfil o registrar o para recuperar contraseña
 //Aqui llegará el interceptor que está en Http.js
 //import * as httoIntercep from "./Http.js"  //importa todas sus funcines
 import { http } from "./Http" //importamos solo lo q necesitamos

@@ -41,20 +41,21 @@ export function http(){
             return response;
         },
         (error)=>{
-            alert(error.response.status);
+            //alert(error.response.status);
             if(error.response.status === 401){
                 //suponemos que aqui quieren vulnerar nuestra App
                 // si hay error 401 limpiamos el localSto y refrescamos la pagina
                 localStorage.removeItem("token")
-                //window.location.href = "/login";
+                window.location.href = "/login";
             }
             if(error.response.status === 403){
                 alert("no tienes permisos")
             }
+            return Promise.reject(error)
             
         }
     );
-
+    
     //ahora retornamos 
     return interceptor;
 }
