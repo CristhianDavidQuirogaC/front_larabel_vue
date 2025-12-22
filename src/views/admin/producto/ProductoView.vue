@@ -20,8 +20,10 @@
                 dataKey="id"
                 :totalRecords="totalRecords"
                 :loading="loading"
+                @page="onPage"
+                @filter="onFilter($event)"
                 :paginator="true"
-                :rows="10"
+                :rows="5"
                 :filters="filters"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 :rowsPerPageOptions="[5, 10, 25]"
@@ -34,7 +36,7 @@
                             <InputIcon>
                                 <i class="pi pi-search" />
                             </InputIcon>
-                            <InputText v-model="filters['global'].value" placeholder="Search..." />
+                            <InputText v-model="filters['global'].value" @change="buscarPor()" placeholder="Buscar..." />
                         </IconField>
                     </div>
                 </template>
@@ -55,7 +57,9 @@
                 <Column field="categoria.nombre" header="Categoria" sortable style="min-width: 10rem"></Column>
                 
                 <Column :exportable="false" style="min-width: 12rem">
+                    <!-- slotProps tiene el identificador y todos los datos del producto -->
                     <template #body="slotProps">
+                        <Button label="IMG" icon="pi pi-external-link" @click="openModalImg(slotProps.data)" />
                         <Button icon="pi pi-pencil" variant="outlined" rounded class="mr-2" @click="editProduct(slotProps.data)" />
                         <Button icon="pi pi-trash" variant="outlined" rounded severity="danger" @click="confirmDeleteProduct(slotProps.data)" />
                     </template>
@@ -107,6 +111,18 @@
                 </template>
                 <pre>{{ product }}</pre>
             </Dialog>
+
+            <!-- Dialog Modal para editar imagen y desntro de este hay un UPLOAD -->
+             <Dialog v-model:visible="displayModalImg" header="Header" :style="{ width: '50vw' }" :breakpoints="{ '960px': '75vw', '640px': '90vw' }">
+                <FileUpload name="demo[]"  @upload="onUpload" customUpload="true" @uploader="onImagenSeleccionada"  accept="image/*" :maxFileSize="1000000">
+                    <template #empty>
+                        <span>Drag and drop files to here to upload.</span>
+                    </template>
+                </FileUpload>
+            </Dialog>
+            <!-- <Dialog v-model:visible="displayModalImg" modal header="Edit Profile" :style="{ width: '25rem' }">
+                
+            </Dialog> -->
         </div>
     </div>
 </template>
@@ -136,6 +152,9 @@ export default {
         const submitted = ref(false);
         const loading = ref(false);
         const totalRecords = ref(0);
+        const lazyParams = ref({});
+        const displayModalImg = ref(false);
+        const id_producto = ref(null);
 
         const filters = ref({
             'global': {value: null, matchMode: FilterMatchMode.CONTAINS},
@@ -151,19 +170,44 @@ export default {
                 console.log(error);
             }
         }
+         //onPage cartura los datos del evento event
+         //lazyParams.value ahi s ecarga el evento
+        const onPage = (event) => {
+            console.log(lazyParams.value)
+            lazyParams.value = event;
+            getProductos();
+        };
+
+        const onFilter = () =>{
+            //leemos el valor por el q debemos de filtrar
+            lazyParams.value.filters = filters.value.global.value;
+            //ahora cargamos los porductos
+            getProductos();
+        }
+
+        //memtodo para buscar
+        const buscarPor = () => {
+            console.log(filters.value.global.value);
+            getProductos();
+        }
 
         //listar a los productos
         const getProductos = async() => {
             try {
                 //se activa el cargado de datos hasta que lleguen los datos
-                loading.value = true;
+                loading.value = (true);
+                let rows = lazyParams.value.rows;
+                //capturamos en q el filtro de busqueda y lo enviamos al data
+                let q = (filters.value.global.value==null)?'': filters.value.global.value;
+                //la primera vez q carga los productos lazyParams.value.page+1 devuelve Nand
+                let page = (lazyParams.value.page == null)?0:lazyParams.value.page
                 //llamo a la lista de productos el primer data es de axios
-                const {data} = await productoService.index();
+                const {data} = await productoService.index(page+1, rows, q);
                 //de la data de axios necesito su data
                 products.value = data.data;
                 totalRecords.value = data.total;
                 //ya llegaron los datos ahora desactivamos el loading
-                loading.value = false;
+                loading.value = (false);
             } catch (error) {
                 console.log(error);
             }
@@ -192,6 +236,29 @@ export default {
             }
             
         }
+        //editar Imagen subir otra imagen
+         //editar Imagen subir otra imagen
+        const openModalImg = (prod) => {
+            id_producto.value = prod.id;
+            displayModalImg.value = true;
+        } 
+        const closeModalImg = () => {
+            displayModalImg.value = false;
+            
+        }
+        const cargarImg= () => {
+            toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
+        };
+
+        const onImagenSeleccionada = async (event) => {
+            console.log(event.files[0]);
+            console.log(id_producto.value)
+            let fd = new FormData();
+            fd.append("imagen", event.files[0])
+            //ejecutamos el servicio
+            await productoService.actualizarImagen(fd, id_producto.value)
+            closeModalImg();
+        }
 
         const formatCurrency = (value) => {
     if(value)
@@ -214,7 +281,16 @@ export default {
             filters,
             formatCurrency,
             loading,
-            totalRecords
+            totalRecords,
+            onPage,
+            lazyParams,
+            onFilter,
+            buscarPor,
+            openModalImg,
+            closeModalImg,
+            displayModalImg,
+            cargarImg,
+            onImagenSeleccionada
 
         }
     }
