@@ -11,7 +11,7 @@
             </div>
             <AppFooter />
         </div>
-
+        <!-- @layout es un ejemplo de comunicación del padre (onLayoutChange) -> con el hijo (AppConfig ) -->
 		<AppConfig :layoutMode="layoutMode" @layout-change="onLayoutChange" />
         <transition name="layout-mask">
             <div class="layout-mask p-component-overlay" v-if="mobileMenuActive"></div>
@@ -46,6 +46,13 @@ export default {
 						{label: 'Categoria', icon: 'pi pi-fw pi-id-card', to: '/admin/categoria'},
 						{label: 'Producto', icon: 'pi pi-fw pi-check-square', to: '/admin/producto'},
                         {label: "Cliente", icon: "pi pi-fw pi-bookmark", to: "/floatlabel"},
+					]
+				},
+                {
+					label: 'Gestión Pedidos', icon: 'pi pi-fw pi-sitemap',
+					items: [
+						{label: 'Pedido', icon: 'pi pi-fw pi-id-card', to: '/admin/pedido'},
+						{label: 'Nuevo Pedido', icon: 'pi pi-fw pi-check-square', to: '/admin/pedido/nuevo'},
 					]
 				},
                 {

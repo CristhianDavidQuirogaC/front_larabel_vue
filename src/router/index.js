@@ -6,6 +6,9 @@ import Perfil from '../views/admin/Perfil.vue'
 import CategoriaView from '../views/admin/categoria/CategoriaView.vue'
 import ProductoView from '../views/admin/producto/ProductoView.vue'
 import { Buffer} from "buffer";
+import NuevoPedido from '@/views/admin/pedido/NuevoPedido.vue'
+import Pedido from '@/views/admin/pedido/Pedido.vue'
+
 
 const routes = [
   {
@@ -52,6 +55,18 @@ const routes = [
         component: ProductoView,
         meta: {requireAuth: true}, //esto es una proteccion de ruta requiere autenticacion
 
+      },
+      {
+        path: 'pedido/nuevo',
+        name: 'NuevoPedido',
+        component: NuevoPedido,
+        meta: {requireAuth: true}, //esto es una proteccion de ruta requiere autenticacion
+      },
+      {
+        path: 'pedido',
+        name: 'Pedido',
+        component: Pedido,
+        meta: {requireAuth: true}, //esto es una proteccion de ruta requiere autenticacion
       }
     ]
   },

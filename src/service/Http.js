@@ -5,6 +5,7 @@
 import axios from "axios";
 import { Buffer} from "buffer";
 export const urlBase = "http://127.0.0.1:8000/api";
+export const urlBaseAsset = "http://127.0.0.1:8000";
 
 /**
  * esta funcion se encargará de configurar las peticiones 

@@ -3,6 +3,7 @@
         <div class="card">
             <Toolbar class="mb-6">
                 <template #start>
+                    <!-- {{ url }} -->
                     <Button label="Nuevo Producto" icon="pi pi-plus" class="mr-2" @click="openNuevoProducto" />
                     <Button label="Eliminar Producto" icon="pi pi-trash" severity="danger" variant="outlined" @click="confirmDeleteSelected" :disabled="!selectedProducts || !selectedProducts.length" />
                 </template>
@@ -30,25 +31,28 @@
                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
             >
                 <template #header>
-                    <div class="flex flex-wrap gap-2 items-center justify-between">
-                        <h4 class="m-0">Gestión Productos</h4>
+                    <div class="table-header flex flex column md:flex-row md:justify-content">
+                        <h4 class="mb-2 md:m-0 p-as-md-center">Gestión Productos</h4>
                         <IconField>
                             <InputIcon>
                                 <i class="pi pi-search" />
                             </InputIcon>
-                            <InputText v-model="filters['global'].value" @change="buscarPor()" placeholder="Buscar..." />
+                            <InputText v-model="filters['global'].value" @keydown.enter="buscarPor()" placeholder="Buscar..." />
                         </IconField>
                     </div>
                 </template>
 
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-                <Column field="id" header="ID" sortable style="min-width: 12rem"></Column>
-                <Column field="nombre" header="NOMBRE" sortable style="min-width: 16rem"></Column>
-                <Column header="Image">
+                <Column field="id" header="ID" :sortable="true" style="min-width: 12rem"></Column>
+                <Column field="nombre" header="NOMBRE" :sortable="true" style="min-width: 16rem"></Column>
+                <Column header="IMAGEN">
+                     <!-- slotProps tiene el identificador y todos los datos del producto. Asi q ñlo enviamos cuando abrimos el modal -->
+                     <!-- Y capturamos ese producto (slotProps.data) en la funcion openModalImg -->
                     <template #body="slotProps">
-                        <img :src="`https://primefaces.org/cdn/primevue/images/product/${slotProps.data.image}`" :alt="slotProps.data.image" class="rounded" style="width: 64px" />
+                        <!-- {{ formatCurrency (slotProps.data.imagen) }} -->
+                        <img :src="`${url}/${slotProps.data.imagen}`" :alt="slotProps.data.imagen" class="rounded" style="width: 64px;" />
                     </template>
-                </Column>
+                </Column> 
                 <Column field="precio" header="PRECIO" sortable style="min-width: 8rem">
                     <template #body="slotProps">
                         {{ formatCurrency(slotProps.data.precio) }}
@@ -57,7 +61,8 @@
                 <Column field="categoria.nombre" header="Categoria" sortable style="min-width: 10rem"></Column>
                 
                 <Column :exportable="false" style="min-width: 12rem">
-                    <!-- slotProps tiene el identificador y todos los datos del producto -->
+                    <!-- slotProps tiene el identificador y todos los datos del producto. Asi q ñlo enviamos cuando abrimos el modal -->
+                     <!-- Y capturamos ese producto (slotProps.data) en la funcion openModalImg -->
                     <template #body="slotProps">
                         <Button label="IMG" icon="pi pi-external-link" @click="openModalImg(slotProps.data)" />
                         <Button icon="pi pi-pencil" variant="outlined" rounded class="mr-2" @click="editProduct(slotProps.data)" />
@@ -66,19 +71,17 @@
                 </Column>
             </DataTable>
 
-            <div v-if="productDialog">
-                <h1>Prueba</h1>
-            </div>
-            <Dialog v-model:visible="productDialog" :style="{ width: '450px' }" header="Detalles del Producto" :modal="true" class="p-fluid">
+            <!-- modal dialog de Producto -->
+            <Dialog v-model:visible="productDialog" :style="{ width: '450px' }" :header="(product.id)?'Editar Producto':'Nuevo Producto'" :modal="true" class="p-fluid">
                 <div class="flex flex-col gap-6">
-                    <img v-if="product.image" :src="`https://primefaces.org/cdn/primevue/images/product/${product.image}`" :alt="product.image" class="product-image" />
-                    <div>
+                    <img v-if="product.imagen" :src="`${url}/${product.imagen}`" :alt="product.imagen" class="rounded" style="width: 64px;  height: 64px" />
+                    <div class="field">
                         <label for="name" class="block font-bold mb-3">Nombre</label>
                         <InputText id="name" v-model.trim="product.nombre" required="true" autofocus :invalid="submitted && !product.nombre" fluid />
                         <small v-if="submitted && !product.nombre" class="text-red-500">El nombre es obligatorio</small>
                     </div>
 
-                    <div class="field">
+                    <div class="field">     
                         <label for="description" class="block font-bold mb-3">Descripcion</label>
                         <Textarea id="descripcion" v-model="product.descripcion" required="true" rows="3" cols="20" fluid />
                     </div>
@@ -106,43 +109,51 @@
                 </div>
 
                 <template #footer>
-                    <Button label="Cancel" icon="pi pi-times" text @click="cerrarDialog " />
-                    <Button label="Guardar" icon="pi pi-check" @click="guardarProducto" />
+                    <Button label="Cancelar" icon="pi pi-times" text @click="cerrarDialog " />
+                    <Button :label="(product.id)?'Editar':'Guardar'" icon="pi pi-check" @click="guardarProducto" />
                 </template>
-                <pre>{{ product }}</pre>
+                <!-- observamos de manera reactiva todos los valores del dialog en product -->
+                <pre>{{ product }}</pre> 
             </Dialog>
 
-            <!-- Dialog Modal para editar imagen y desntro de este hay un UPLOAD -->
+            <!-- Dialog Modal para editar imagen y dentro de este hay un UPLOAD -->
              <Dialog v-model:visible="displayModalImg" header="Header" :style="{ width: '50vw' }" :breakpoints="{ '960px': '75vw', '640px': '90vw' }">
-                <FileUpload name="demo[]"  @upload="onUpload" customUpload="true" @uploader="onImagenSeleccionada"  accept="image/*" :maxFileSize="1000000">
+                <FileUpload name="demo[]"  @upload="onUpload" :customUpload="true" @uploader="onImagenSeleccionada"  accept="image/*" :maxFileSize="1000000">
                     <template #empty>
-                        <span>Drag and drop files to here to upload.</span>
+                        <span>Arrastre y suelte archivos aquí para cargarlos.</span>
                     </template>
                 </FileUpload>
             </Dialog>
-            <!-- <Dialog v-model:visible="displayModalImg" modal header="Edit Profile" :style="{ width: '25rem' }">
-                
-            </Dialog> -->
         </div>
     </div>
+    <Toast />
 </template>
 
 <script>
-import { FilterMatchMode } from 'primevue/api';
+import { FilterMatchMode } from 'primevue/api'; //para la búsqueda
 import  {ref, onMounted} from "vue"
+//llamamos a nuestro propio servicio @/ hace referencia a la carpera SRC
 import * as productoService from "@/service/ProductoService.js"
 import * as categoriaService from "@/service/CategoriaService.js"
+import { useToast } from "primevue/usetoast"; // para notificaciones
+import { urlBaseAsset } from '@/service/Http.js'; //para cargar imágenes
 
 export default {
+    data(){
+        return{
+            url: urlBaseAsset
+        }
+    },
     setup(){
+        const toast = useToast();
         //debemos obtgener la lista y empezar a guardar
         onMounted(() => {
             //productoService.getProducts().then((data) => (producto.value = data));
-            getCategorias();
+            getCategorias(); //llamamos a la lista de categorias
             getProductos();
         });
         const productDialog = ref(false);
-        const product = ref({});
+        const product = ref({}); //aqui se cargarán los valores capturados del modal 
         const products = ref(); //Puede ser un objeto o un array
         const categorias = ref([]); //para la lista que setpa un array
         const dt = ref(); //data table
@@ -154,7 +165,8 @@ export default {
         const totalRecords = ref(0);
         const lazyParams = ref({});
         const displayModalImg = ref(false);
-        const id_producto = ref(null);
+        //en este id_producto capturamos los cambios para abrir el modal
+        const id_producto = ref(null); //este id se va a cambiar cuando se intente subir la imagen
 
         const filters = ref({
             'global': {value: null, matchMode: FilterMatchMode.CONTAINS},
@@ -163,8 +175,9 @@ export default {
         //get categorias debe cargar al cargar la pagina onMokunted
         const getCategorias = async() => {
             try {
-                //llamo a la lista de categorias 
+                //llamo a la lista de categorias y lo guardo en data
                 const {data} = await categoriaService.index();
+                //envio la data al arreglo categorias
                 categorias.value = data;
             } catch (error) {
                 console.log(error);
@@ -173,7 +186,7 @@ export default {
          //onPage cartura los datos del evento event
          //lazyParams.value ahi s ecarga el evento
         const onPage = (event) => {
-            console.log(lazyParams.value)
+            console.log(lazyParams.value);
             lazyParams.value = event;
             getProductos();
         };
@@ -198,12 +211,12 @@ export default {
                 loading.value = (true);
                 let rows = lazyParams.value.rows;
                 //capturamos en q el filtro de busqueda y lo enviamos al data
-                let q = (filters.value.global.value==null)?'': filters.value.global.value;
+                let q = filters.value.global.value==null?'': filters.value.global.value;
                 //la primera vez q carga los productos lazyParams.value.page+1 devuelve Nand
                 let page = (lazyParams.value.page == null)?0:lazyParams.value.page
                 //llamo a la lista de productos el primer data es de axios
                 const {data} = await productoService.index(page+1, rows, q);
-                //de la data de axios necesito su data
+                //de la data de axios necesito su data la cargo en  products 
                 products.value = data.data;
                 totalRecords.value = data.total;
                 //ya llegaron los datos ahora desactivamos el loading
@@ -212,59 +225,88 @@ export default {
                 console.log(error);
             }
         }
-        //abrir el Dialog Modal
+        //abrir el Dialog Modal de un nnuevo Producto
         const openNuevoProducto = () => {
             //abrimos con los campos vacios
             product.value = {};
             submitted.value = false;
             productDialog.value = true;
         } 
+        //cerramos el Dialog o Modal de NuevoProdcto
         const cerrarDialog = () => {
             productDialog.value = false;
             submitted.value = false;
         };
         // Guardar un producto
+        //cuando se trabaja con peticiones al servidor o promesas siempre debemos de usar el try catch
         const guardarProducto = async () => {
-            try {
-                //para guardar usamos el  productoService enviando datos
-                //podemos capturar el mensaje del servidor en data
-                await productoService.store(product.value);
-                //cerramos el modal
-                productDialog.value = false;
-            } catch (error) {
-                console.log(error);
-            }
-            
+            if(product.value.id){
+                //***si EXISTE EL ID es para editar, enviando datos e id s
+                const {data} = await productoService.update(product.value, product.value.id);
+                //listamos los productos
+                getProductos();
+                cerrarDialog();
+            }else{
+                try {
+                    //****cuando NO EXISTE SU ID ES PARA GUARDAR
+                    //para guardar usamos el  productoService ENVIANDO DATOS del producto
+                    //podemos capturar el mensaje del servidor en data
+                    const {data} = await productoService.store(product.value);
+                    //cerramos el modal
+                    productDialog.value = false;
+                    //vaciamos los valores de product
+                    product.value = {};
+                } catch (error) {
+                    console.log(error);
+                }
+            }  
         }
-        //editar Imagen subir otra imagen
-         //editar Imagen subir otra imagen
+
+         //editar Imagen subir otra imagen recibimos el ide
+         //cuando se seleccione el modal debemos de recibir el id producto
         const openModalImg = (prod) => {
+            //id_producto cambia cuando se abra el modal y luego se enviará a la BD
             id_producto.value = prod.id;
             displayModalImg.value = true;
-        } 
+        };
+
         const closeModalImg = () => {
+            id_producto.value = null; // el id del producto se va a resetear
             displayModalImg.value = false;
             
-        }
-        const cargarImg= () => {
+        };
+
+        const onUpload = () => {
             toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
         };
 
+        //capturamos el evento desde el modal de editar imagen @uploader
         const onImagenSeleccionada = async (event) => {
             console.log(event.files[0]);
-            console.log(id_producto.value)
+            console.log(id_producto.value);
             let fd = new FormData();
-            fd.append("imagen", event.files[0])
-            //ejecutamos el servicio
-            await productoService.actualizarImagen(fd, id_producto.value)
+            console.log(fd);
+            fd.append('imagen', event.files[0]);
+            fd.append("_method",'PUT');
+            //ejecutamos el servicio enviando el identificador del producto ya cargado cuando se abrio el modal
+            console.log(fd.get('_method'));
+            await productoService.actualizarImagen(fd, id_producto.value);
+            getProductos();
             closeModalImg();
+            toast.add({ severity: 'info', summary: 'Success', detail: 'File Uploaded', life: 3000 });
         }
 
         const formatCurrency = (value) => {
-    if(value)
-        return value.toLocaleString('en-US', {style: 'currency', currency: 'USD'});
-    return;
-};
+        if(value)
+            return value.toLocaleString('en-US', {style: 'currency', currency: 'USD'});
+        return;
+
+        };
+
+        const editProduct = (prod) => {
+            product.value = {...prod};
+            productDialog.value = true;
+        };
 
         return{
             openNuevoProducto,
@@ -289,8 +331,11 @@ export default {
             openModalImg,
             closeModalImg,
             displayModalImg,
-            cargarImg,
-            onImagenSeleccionada
+            onUpload,
+            onImagenSeleccionada,
+            id_producto,
+            urlBaseAsset,
+            editProduct,
 
         }
     }
@@ -298,9 +343,6 @@ export default {
 </script>
 
 <style>
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 :root {
     --body-bg: var(--p-surface-50);
