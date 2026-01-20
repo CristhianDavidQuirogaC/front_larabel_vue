@@ -4,13 +4,13 @@
             <Toolbar class="mb-6">
                 <template #start>
                     <!-- {{ url }} -->
-                    <Button label="Nuevo Producto" icon="pi pi-plus" class="mr-2" @click="openNuevoProducto" />
-                    <Button label="Eliminar Producto" icon="pi pi-trash" severity="danger" variant="outlined" @click="confirmDeleteSelected" :disabled="!selectedProducts || !selectedProducts.length" />
+                    <Button label="Nuevo Producto" icon="pi pi-plus" class="p- button-succes mr-2" @click="openNuevoProducto" />
+                    <Button label="Eliminar Producto" icon="pi pi-trash" severity="danger" @click="confirmDeleteSelected" :disabled="!selectedProducts || !selectedProducts.length" />
                 </template>
 
                 <template #end>
                     <FileUpload mode="Import" accept="image/*" :maxFileSize="1000000" label="Import" customUpload chooseLabel="Import" class="mr-2" auto :chooseButtonProps="{ severity: 'secondary' }" />
-                    <Button label="Exportar" icon="pi pi-upload" severity="secondary" @click="exportCSV($event)" />
+                    <Button label="Exportar" icon="pi pi-upload" class="p-button-help" @click="exportCSV($event)" />
                 </template>
             </Toolbar>
             <DataTable
@@ -31,7 +31,7 @@
                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
             >
                 <template #header>
-                    <div class="table-header flex flex column md:flex-row md:justify-content">
+                    <div class="table-header flex flex column md:flex-row md:justify-content-between">
                         <h4 class="mb-2 md:m-0 p-as-md-center">Gestión Productos</h4>
                         <IconField>
                             <InputIcon>
@@ -73,40 +73,39 @@
 
             <!-- modal dialog de Producto -->
             <Dialog v-model:visible="productDialog" :style="{ width: '450px' }" :header="(product.id)?'Editar Producto':'Nuevo Producto'" :modal="true" class="p-fluid">
-                <div class="flex flex-col gap-6">
-                    <img v-if="product.imagen" :src="`${url}/${product.imagen}`" :alt="product.imagen" class="rounded" style="width: 64px;  height: 64px" />
-                    <div class="field">
-                        <label for="name" class="block font-bold mb-3">Nombre</label>
-                        <InputText id="name" v-model.trim="product.nombre" required="true" autofocus :invalid="submitted && !product.nombre" fluid />
-                        <small v-if="submitted && !product.nombre" class="text-red-500">El nombre es obligatorio</small>
-                    </div>
+                <img v-if="product.imagen" :src="`${url}/${product.imagen}`" :alt="product.imagen" class="rounded" style="width: 64px;  height: 64px" />
+                <div class="field">
+                    <label for="name" class="block font-bold mb-3">Nombre</label>
+                    <InputText id="name" v-model.trim="product.nombre" required="true" autofocus :invalid="submitted && !product.nombre" fluid />
+                    <small v-if="submitted && !product.nombre" class="text-red-500">El nombre es obligatorio</small>
+                </div>
 
-                    <div class="field">     
-                        <label for="description" class="block font-bold mb-3">Descripcion</label>
-                        <Textarea id="descripcion" v-model="product.descripcion" required="true" rows="3" cols="20" fluid />
-                    </div>
+                <div class="field">     
+                    <label for="description" class="block font-bold mb-3">Descripcion</label>
+                    <Textarea id="descripcion" v-model="product.descripcion" required="true" rows="3" cols="20" fluid />
+                </div>
 
-                    <div class="field">
-                        <label class="mb-4">Categoria</label>
-                        <div class="grid grid-cols-12 gap-4">
-                            <div class="flex items-center gap-2 col-span-6" v-for="cat in categorias" :key="cat.id">
-                                <RadioButton id="category1" name="category" :value="cat.id" v-model="product.categoria_id" />
-                                <label for="category1">{{ cat.nombre }}</label>
-                            </div>
-                        </div>
-                    </div>
-
+                <div class="field">
+                    <label class="mb-4">Categoria</label>
                     <div class="grid grid-cols-12 gap-4">
-                        <div class="col-span-6">
-                            <label for="price" class="block font-bold mb-3">Precio</label>
-                            <InputNumber id="price" v-model="product.precio" mode="currency" currency="USD" locale="en-US" fluid />
-                        </div>
-                        <div class="col-span-6">
-                            <label for="quantity" class="block font-bold mb-3">Cantidad</label>
-                            <InputNumber id="quantity" v-model="product.stock" integeronly fluid />
+                        <div class="flex items-center gap-2 col-span-6" v-for="cat in categorias" :key="cat.id">
+                            <RadioButton id="category1" name="category" :value="cat.id" v-model="product.categoria_id" />
+                            <label for="category1">{{ cat.nombre }}</label>
                         </div>
                     </div>
                 </div>
+
+                <div class="grid grid-cols-12 gap-4">
+                    <div class="col-span-6">
+                        <label for="price" class="block font-bold mb-3">Precio</label>
+                        <InputNumber id="price" v-model="product.precio" mode="currency" currency="USD" locale="en-US" fluid />
+                    </div>
+                    <div class="col-span-6">
+                        <label for="quantity" class="block font-bold mb-3">Cantidad</label>
+                        <InputNumber id="quantity" v-model="product.stock" integeronly fluid />
+                    </div>
+                </div>
+                
 
                 <template #footer>
                     <Button label="Cancelar" icon="pi pi-times" text @click="cerrarDialog " />

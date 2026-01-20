@@ -82,17 +82,17 @@ const router = createRouter({
 //el to tiene la informacion de la dirección actual de la url es un obj
 
 router.beforeEach((to, from, next)=>{
-  console.log(to)
-  if(to.meta.requireAuth){
-    //Aqui entra VueX
-    //si necesita entonces debemos de verificar si estamos logueados
-    //traemos los datos del local pero estan codificados asi q debemos decodi
-    let token = Buffer.from(localStorage.getItem("token"), "base64").toString("ascii");
-    if(token){
-      next(); // esta instrucción es = a dejar pasar a donde se quiere entrar TRUE
-    }
-    next("/login");
-  } //Si no requiere autenticación entonces puede pasar.. Asi validamos el lado del frontEnd
+  //console.log(to)
+  // if(to.meta.requireAuth){
+  //   //Aqui entra VueX
+  //   //si necesita entonces debemos de verificar si estamos logueados
+  //   //traemos los datos del local pero estan codificados asi q debemos decodi
+  //   let token = Buffer.from(localStorage.getItem("token"), "base64").toString("ascii");
+  //   if(token){
+  //     next(); // esta instrucción es = a dejar pasar a donde se quiere entrar TRUE
+  //   }
+  //   next("/login");
+  // } //Si no requiere autenticación entonces puede pasar.. Asi validamos el lado del frontEnd
   next(); 
 })
 

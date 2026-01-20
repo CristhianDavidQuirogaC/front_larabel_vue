@@ -49,27 +49,44 @@
         <div class="col-12">
             <div class="card">
                 <h5>CLIENTE</h5>
-                 <span class="p-input-icon-left">
-                    <i class="pi pi-search" />
-                    <InputText v-model="filters['global'].value" @keydown.enter="buscarPor()" placeholder="Buscar..." />
-                </span>
-                <!-- El boton de abajo abre el modal de Clientes -->
-                <Button label="Nuevo Cliente" icon="pi pi-user" @click="openNuevoClienteModal" />
+                <div class="grid">
+                    <div class="col-8">
+                        <span class="p-input-icon-left">
+                            <i class="pi pi-search" />
+                            <InputText v-model="buscarCliente" @keydown.enter="buscarPor()" placeholder="Buscar Cliente..." />
+                        </span>
+                        <!-- {{ cliente_preview }} -->
+                        <template v-if="cliente_preview.id">
+                            <h6>Nombre Cliente:</h6>
+                            <p>{{ cliente_preview.nombre_completo }}</p>
+                            <h6>CI/NIT:</h6>
+                            <p>{{ cliente_preview.ci_nit }}</p>
+                        </template>
+                        <template v-else>
+                            <h6>Cliente No ENCONTRADO</h6>
+                        </template>
+                    </div>
+                    <div class="col-4">
+                         <!-- El boton de abajo abre el modal de Clientes -->
+                        <Button label="Nuevo Cliente" icon="pi pi-user" @click="openNuevoClienteModal"  class="p-button-sm" />
+                    </div>
+                </div>
                 
+ 
             </div>
         </div>
         <div class="col-12">
             <div class="card">
-                Boton Guardar
+                 <Button label="guardar Pedido" icon="pi pi-user" @click="guardarPedido" class="p-button-sm"/>
             </div>
         </div>
     </div>
   </div>
 
  <!-- Dialog para nuevo cliente -->
-  <Dialog v-model:visible="displayClienteModal" header="Nuevo Cliente"  :breakpoints="{ '960px': '75vw', '75px': '90vw' }" :style="{ width: '50rem' }">
+  <Dialog v-model:visible="displayClienteModal" class="p-fluid" header="Nuevo Cliente" :modal="true" :breakpoints="{ '960px': '75vw', '75px': '90vw' }" :style="{ width: '50vw' }">
     <div class="field">
-        <label for="name" class="block font-bold mb-3">Nombre Cliente</label>
+        <label for="name"  class="block font-bold mb-3 ">Nombre Cliente</label>
         <InputText id="name" v-model.trim="cliente.nombre_completo" required="true" autofocus :invalid="submitted && !cliente.nombre_completo" fluid />
         <small v-if="submitted && !cliente.nombre" class="text-red-500">El nombre es obligatorio</small>
     </div>
@@ -80,20 +97,20 @@
     </div>
 
 
-    <div class="grid grid-cols-12 gap-4">
-        <div class="col-span-6">
-            <label for="correo" class="block font-bold mb-3">Correo</label>
-            <InputText id="correo" v-model="cliente.correo" required="true" autofocus :invalid="submitted && !cliente.correo" fluid />
-        </div>
-        <div class="col-span-6">
-            <label for="ciNit" class="block font-bold mb-3">C.I. / NIT</label>
-            <InputNumber id="ciNit" v-model="cliente.ci_nit" autofocus :invalid="submitted && !cliente.ci_nit" fluid />
-        </div>
+    <div class="field">
+        <label for="correo" class="block font-bold mb-3">Correo</label>
+        <InputText id="correo" v-model="cliente.correo" required="true" autofocus :invalid="submitted && !cliente.correo" fluid />
+    </div>
+    
+    <div class="field">
+        <label for="ciNit" class="block font-bold mb-3">C.I. / NIT</label>
+        <InputNumber id="ciNit" v-model="cliente.ci_nit" autofocus :invalid="submitted && !cliente.ci_nit" fluid />
+        
     </div>
     {{ cliente }}
     <template #footer>
         <Button type="button" icon="pi pi-times" label="No" severity="secondary" @click="closeClienteModal" />
-        <Button type="button" icon="pi pi-check" label="Guardar" @click="closeClienteModal"></Button>
+        <Button type="button" icon="pi pi-check" label="Guardar Cliente" @click="guardarCliente"></Button>
     </template>
    </Dialog>
 </template>
@@ -103,6 +120,9 @@ import { FilterMatchMode } from 'primevue/api'; //para la búsqueda
 import  {ref, onMounted} from "vue"
 //llamamos a nuestro propio servicio @/ hace referencia a la carpera SRC
 import * as productoService from "@/service/ProductoService.js" 
+import * as clienteService from "@/service/ClienteService.js"
+import * as pedidoService from "@/service/PedidoService.js"
+
 import { useToast } from "primevue/usetoast"; // para notificaciones
 import { urlBaseAsset } from '@/service/Http.js'; //para cargar imágenes
 //importamos el componente hijo le damos el nombre que querramos y lugo lo exportamos en el campo "components"
@@ -127,6 +147,7 @@ export default {
         
         const product = ref({}); //aqui se cargarán los valores capturados del modal 
         const cliente = ref({}); //aqui se cargarán los valores capturados del modal 
+        const cliente_preview = ref({});
         const products = ref([]); //Debe ser un array
         const dt = ref(); //data table
         const loading = ref(false);
@@ -138,6 +159,8 @@ export default {
         const filters = ref({
             'global': {value: null, matchMode: FilterMatchMode.CONTAINS},
         });
+
+        const buscarCliente = ref();
         // carrito donde agregamos los productos
         const carrito = ref([]);
         //cliente
@@ -159,9 +182,12 @@ export default {
         };
 
         //memtodo para buscar
-        const buscarPor = () => {
-            console.log(filters.value.global.value);
-            getProductos();
+        const buscarPor = async () => {
+            console.log(buscarCliente.value);
+            //buscar un servicio. Una vez que capture llegara un objeto y lo capturamos en cliente_preview
+            //index es del servicio Cliente
+            const {data} =  await clienteService.index(buscarCliente.value);
+            cliente_preview.value = data;
         };
 
         //listar a los productos
@@ -215,6 +241,29 @@ export default {
             displayClienteModal.value = false;
         }
 
+        //guardar cliente
+        const guardarCliente = async () =>{
+            //consumimos un servicio. si retorna esta bien y lo capturamos en data 
+            // Y la data que llegue lo cargamos en "cliente_preview"
+            //necesitamos el clienteService.store y enviamos a cliente.value
+            const {data} =  await clienteService.store(cliente.value)
+            cliente_preview.value = data
+
+        }
+
+        const guardarPedido = async ()=>{
+            //formamos la estructura de la api
+            let pedido = {
+                //necesitamos capturar el id de cliente
+                cliente_id: cliente_preview.value.id,
+                //Necesitamos los productos lo mandamos como array al Back PedidoController 
+                //esos productos estan en la variable, carrito
+                productos: carrito.value     
+            }
+            //ya tenemos el pedido ahora lo mandamos al pedidoService q lo importamos
+            const { data } = await pedidoService.store(pedido);
+        }
+
         return{
             product,
             products,
@@ -233,7 +282,11 @@ export default {
             openNuevoClienteModal,
             displayClienteModal,
             cliente,
-            closeClienteModal
+            closeClienteModal,
+            guardarPedido,
+            cliente_preview,
+            guardarCliente,
+            buscarCliente
         }
     },
 
